@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌟 명신여고 학생 개발자 포트폴리오</title>
+    <!-- Tailwind CSS CDN 로드 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 기본 폰트 설정 (Inter를 기반으로 한국어 가독성을 높임) */
+        :root {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+            scroll-behavior: smooth; /* 부드러운 스크롤 */
+        }
+        /* 스크롤바 커스터마이징 (핑크 테마에 맞게) */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #f472b6; /* Pink-400 */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #fce7f3; /* Pink-50 */
+        }
+
+        /* 프로젝트 카드 호버 효과 */
+        .project-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+        .project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(236, 72, 153, 0.3), 0 4px 6px -2px rgba(236, 72, 153, 0.15); /* Pink Shadow */
+        }
+
+        /* 탭 버튼 스타일 */
+        .tab-button {
+            transition: background-color 0.2s, color 0.2s, transform 0.2s;
+        }
+        .tab-button:hover {
+            transform: translateY(-2px);
+        }
+        .tab-button.active {
+            background-color: #db2777; /* accent-pink */
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(236, 72, 153, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-pink-50 text-gray-800 antialiased">
+
+    <!-- Tailwind Config for Pink Theme -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-pink': '#ec4899', // Pink-500
+                        'accent-pink': '#db2777',  // Pink-600
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Navigation Bar (Sticky and Responsive) -->
+    <nav id="navbar" class="sticky top-0 z-50 bg-white bg-opacity-95 shadow-lg backdrop-blur-sm">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo/Title -->
+                <div class="flex-shrink-0">
+                    <a href="#" class="text-2xl font-extrabold text-primary-pink">
+                        Code Blossom 🌸
+                    </a>
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#hero" class="text-gray-600 hover:bg-pink-100 hover:text-accent-pink px-3 py-2 rounded-md text-sm font-medium transition duration-150">홈</a>
+                        <a href="#about" class="text-gray-600 hover:bg-pink-100 hover:text-accent-pink px-3 py-2 rounded-md text-sm font-medium transition duration-150">나를 소개합니다</a>
+                        <a href="#projects" class="text-gray-600 hover:bg-pink-100 hover:text-accent-pink px-3 py-2 rounded-md text-sm font-medium transition duration-150">작품</a>
+                        <a href="#contact" class="text-gray-600 hover:bg-pink-100 hover:text-accent-pink px-3 py-2 rounded-md text-sm font-medium transition duration-150">연락처</a>
+                    </div>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="-mr-2 flex md:hidden">
+                    <button id="mobile-menu-button" type="button" class="inline-flex items-center justify-center p-2 rounded-md text-primary-pink hover:text-white hover:bg-accent-pink focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-pink transition duration-150" aria-controls="mobile-menu" aria-expanded="false">
+                        <!-- Menu Icon (SVG) -->
+                        <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        <!-- Close Icon (SVG) - hidden by default -->
+                        <svg class="hidden h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu (Hidden by default) -->
+        <div class="md:hidden" id="mobile-menu">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#hero" class="text-gray-700 hover:bg-pink-200 hover:text-accent-pink block px-3 py-2 rounded-md text-base font-medium transition duration-150">홈</a>
+                <a href="#about" class="text-gray-700 hover:bg-pink-200 hover:text-accent-pink block px-3 py-2 rounded-md text-base font-medium transition duration-150">나를 소개합니다</a>
+                <a href="#projects" class="text-gray-700 hover:bg-pink-200 hover:text-accent-pink block px-3 py-2 rounded-md text-base font-medium transition duration-150">작품</a>
+                <a href="#contact" class="text-gray-700 hover:bg-pink-200 hover:text-accent-pink block px-3 py-2 rounded-md text-base font-medium transition duration-150">연락처</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header id="hero" class="pt-24 pb-32 md:pt-32 md:pb-48 bg-pink-100">
+        <div class="container mx-auto px-4 text-center">
+            <div class="w-24 h-24 mx-auto mb-6 bg-pink-300 rounded-full flex items-center justify-center border-4 border-white shadow-xl">
+                <span class="text-5xl" role="img" aria-label="Sparkles">✨</span>
+            </div>
+            <h1 class="text-4xl md:text-6xl font-extrabold text-primary-pink mb-4 leading-tight">
+                안녕하세요! 
+                <span class="block text-gray-800 text-3xl md:text-5xl mt-2"> 10721 정지은</span>
+            </h1>
+            <p class="text-xl md:text-2xl text-gray-600 font-medium max-w-2xl mx-auto">
+                일상의 문제를 해결하는 앱과 챗봇을 만드는 것을 즐기는 <br class="hidden sm:inline">똑똑한 학생 개발자입니다.
+            </p>
+            <a href="#projects" class="mt-8 inline-block bg-accent-pink text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-pink-700 transition duration-300 transform hover:scale-105">
+                제 작품 구경하기
+            </a>
+        </div>
+    </header>
+
+    <!-- About Me Section -->
+    <section id="about" class="py-16 md:py-24 bg-white">
+        <div class="container mx-auto px-4 max-w-4xl">
+            <h2 class="text-3xl md:text-4xl font-bold text-center text-accent-pink mb-12 border-b-4 border-pink-200 inline-block px-4 pb-2">나를 소개합니다 🎀</h2>
+            
+            <div class="space-y-8 text-lg">
+                <div class="p-6 bg-pink-50 rounded-xl shadow-md border-l-4 border-primary-pink">
+                    <h3 class="text-2xl font-semibold text-gray-700 mb-2">💻 코딩에 빠지다</h3>
+                    <p class="text-gray-600">
+                        명신여고 1학년 재학 중이며, 컴퓨터 프로그래밍에 깊은 흥미를 가지고 있습니다. 단순한 코딩을 넘어, 제가 만든 프로그램이 실제로 사람들에게 도움을 주는 것에 큰 보람을 느낍니다. 매일 새로운 기술을 배우며 성장의 재미를 느끼고 있어요.
+                    </p>
+                </div>
+                
+                <div class="p-6 bg-pink-50 rounded-xl shadow-md border-l-4 border-primary-pink">
+                    <h3 class="text-2xl font-semibold text-gray-700 mb-2">🌟 주요 관심 분야</h3>
+                    <p class="text-gray-600">
+                        저는 특히 **웹 앱(Web App)**과 **챗봇(Chatbot)** 개발에 집중하고 있습니다. 웹 앱으로는 일상생활에 필요한 도구나 유틸리티를 만드는 것을 좋아하고, 챗봇으로는 재미있거나 교육적인 대화형 서비스를 구현하는 것에 도전하고 있습니다.
+                    </p>
+                </div>
+
+                <div class="p-6 bg-pink-50 rounded-xl shadow-md border-l-4 border-primary-pink">
+                    <h3 class="text-2xl font-semibold text-gray-700 mb-2">🛠️ 보유 기술</h3>
+                    <ul class="list-disc pl-5 text-gray-600 space-y-1">
+                        <li>**프론트엔드:** HTML, CSS(Tailwind CSS), JavaScript</li>
+                        <li>**백엔드/로직:** Python (기초), Node.js (실습 중)</li>
+                        <li>**데이터:** JSON, 간단한 API 연동 경험</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects" class="py-16 md:py-24 bg-pink-100">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl md:text-4xl font-bold text-center text-accent-pink mb-12 border-b-4 border-primary-pink inline-block px-4 pb-2">나의 멋진 작품들 🚀</h2>
+            
+            <!-- Category Tabs for Interactivity -->
+            <div class="flex flex-wrap justify-center space-x-2 md:space-x-4 mb-12">
+                <button data-filter="all" class="tab-button active bg-accent-pink text-white font-semibold py-2 px-4 rounded-full text-sm sm:text-base mb-2">
+                    전체 보기 (All)
+                </button>
+                <button data-filter="app" class="tab-button bg-white text-accent-pink font-semibold py-2 px-4 rounded-full hover:bg-pink-200 text-sm sm:text-base mb-2">
+                    웹 앱 (Web App)
+                </button>
+                <button data-filter="chatbot" class="tab-button bg-white text-accent-pink font-semibold py-2 px-4 rounded-full hover:bg-pink-200 text-sm sm:text-base mb-2">
+                    챗봇 (Chatbot)
+                </button>
+                <button data-filter="game" class="tab-button bg-white text-accent-pink font-semibold py-2 px-4 rounded-full hover:bg-pink-200 text-sm sm:text-base mb-2">
+                    미니 게임 (Mini Game)
+                </button>
+            </div>
+
+            <!-- Project Grid -->
+            <div id="project-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                
+                <!-- Project 1: Time Tracker App -->
+                <div class="project-card bg-white rounded-xl shadow-lg overflow-hidden border-t-4 border-primary-pink p-6" data-category="app">
+                    <h3 class="text-2xl font-bold text-primary-pink mb-2">✨ 명신 스터디 타이머 앱</h3>
+                    <p class="text-gray-600 mb-4 text-sm">#Web_App #JavaScript #시간관리</p>
+                    <p class="text-gray-700">학생들이 순공 시간을 효율적으로 기록하고 관리할 수 있도록 만든 웹 앱입니다. 모바일 반응형으로 제작하여 쉬는 시간에도 쉽게 접근 가능합니다.</p>
+                    <div class="mt-4 flex justify-between items-center">
+                        <span class="text-sm font-medium text-pink-500">2024년 11월 개발</span>
+                        <a href="#" class="text-accent-pink hover:text-pink-700 font-semibold text-sm">자세히 보기 &rarr;</a>
+                    </div>
+                </div>
+
+                <!-- Project 2: School Food Bot -->
+                <div class="project-card bg-white rounded-xl shadow-lg overflow-hidden border-t-4 border-primary-pink p-6" data-category="chatbot">
+                    <h3 class="text-2xl font-bold text-primary-pink mb-2">🤖 급식 알리미 챗봇</h3>
+                    <p class="text-gray-600 mb-4 text-sm">#Chatbot #Python #API연동</p>
+                    <p class="text-gray-700">학교 급식 정보를 빠르게 조회하고 알림을 설정해주는 챗봇입니다. 교육청 API를 연동하여 실시간 데이터를 가져옵니다.</p>
+                    <div class="mt-4 flex justify-between items-center">
+                        <span class="text-sm font-medium text-pink-500">2024년 10월 개발</span>
+                        <a href="#" class="text-accent-pink hover:text-pink-700 font-semibold text-sm">자세히 보기 &rarr;</a>
+                    </div>
+                </div>
+
+                <!-- Project 3: Pink Tic-Tac-Toe -->
+                <div class="project-card bg-white rounded-xl shadow-lg overflow-hidden border-t-4 border-primary-pink p-6" data-category="game">
+                    <h3 class="text-2xl font-bold text-primary-pink mb-2">🎮 핑크 틱택토 (Mini Game)</h3>
+                    <p class="text-gray-600 mb-4 text-sm">#Mini_Game #HTML_Canvas #JS</p>
+                    <p class="text-gray-700">친구와 함께 즐길 수 있는 미니 틱택토 게임입니다. 캔버스와 자바스크립트를 활용해 게임 로직을 구현했습니다.</p>
+                    <div class="mt-4 flex justify-between items-center">
+                        <span class="text-sm font-medium text-pink-500">2024년 9월 개발</span>
+                        <a href="#" class="text-accent-pink hover:text-pink-700 font-semibold text-sm">자세히 보기 &rarr;</a>
+                    </div>
+                </div>
+
+                <!-- Project 4: My Own Project (Example App) -->
+                <div class="project-card bg-white rounded-xl shadow-lg overflow-hidden border-t-4 border-primary-pink p-6" data-category="app">
+                    <h3 class="text-2xl font-bold text-primary-pink mb-2">💡 개인 공부 기록 웹 (TBD)</h3>
+                    <p class="text-gray-600 mb-4 text-sm">#Web_App #Planner #Self_Study</p>
+                    <p class="text-gray-700">개인적으로 공부한 내용과 진도를 기록하고 시각화하는 프로젝트를 구상 중입니다. 현재 기획 및 프로토타입 단계입니다.</p>
+                    <div class="mt-4 flex justify-between items-center">
+                        <span class="text-sm font-medium text-pink-500">기획 중</span>
+                        <span class="text-gray-500 text-sm">준비 중...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-16 md:py-24 bg-white">
+        <div class="container mx-auto px-4 max-w-xl text-center">
+            <h2 class="text-3xl md:text-4xl font-bold text-center text-accent-pink mb-8 border-b-4 border-pink-200 inline-block px-4 pb-2">연락처 💌</h2>
+            <p class="text-xl text-gray-600 mb-8">
+                코딩이나 프로젝트에 대해 궁금한 점이 있으시거나, 함께 협업하고 싶으시다면 언제든지 연락주세요!
+            </p>
+            
+            <div class="space-y-4">
+                <div class="flex items-center justify-center p-4 bg-pink-50 rounded-lg shadow-inner">
+                    <!-- Email SVG Icon -->
+                    <svg class="w-6 h-6 text-primary-pink mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8m-7-3h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6"></path></svg>
+                    <p class="text-lg font-medium text-gray-700">Email: <a href="mailto:mysh_coder@myungsincode.com" class="text-accent-pink hover:underline">mysh_coder@myungsincode.com</a></p>
+                </div>
+                
+                <div class="flex items-center justify-center p-4 bg-pink-50 rounded-lg shadow-inner">
+                    <!-- Blog/Portfolio Icon (Simulated link) -->
+                    <svg class="w-6 h-6 text-primary-pink mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                    <p class="text-lg font-medium text-gray-700">
+                        Blog / GitHub: 
+                        <span class="text-gray-500 italic">준비 중</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-primary-pink text-white py-6">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-sm mb-2">© 2024 Code Blossom 🌸.정지은의 포트폴리오.</p>
+            <p class="text-xs opacity-80">HTML / Tailwind CSS로 제작되었습니다.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript for Interactivity -->
+    <script>
+        // 1. Mobile Menu Toggle
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            const icon = this.children[0]; // Menu icon
+            const closeIcon = this.children[1]; // Close icon
+
+            menu.classList.toggle('hidden');
+            icon.classList.toggle('hidden');
+            closeIcon.classList.toggle('hidden');
+
+            // Close menu when a link is clicked
+            const links = menu.querySelectorAll('a');
+            links.forEach(link => {
+                link.addEventListener('click', () => {
+                    menu.classList.add('hidden');
+                    icon.classList.remove('hidden');
+                    closeIcon.classList.add('hidden');
+                });
+            });
+        });
+
+
+        // 2. Project Filtering Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const projectList = document.getElementById('project-list');
+            const projectCards = projectList.querySelectorAll('.project-card');
+
+            // Initialize: Show all projects and set 'all' button as active
+            filterProjects('all');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const filter = e.target.dataset.filter;
+                    
+                    // Update active button state
+                    tabButtons.forEach(btn => btn.classList.remove('active', 'bg-accent-pink', 'text-white', 'hover:bg-pink-200'));
+                    tabButtons.forEach(btn => btn.classList.add('bg-white', 'text-accent-pink', 'hover:bg-pink-200')); // Reset
+                    
+                    e.target.classList.remove('bg-white', 'text-accent-pink', 'hover:bg-pink-200'); // Remove default
+                    e.target.classList.add('active', 'bg-accent-pink', 'text-white'); // Set active state
+
+                    // Filter projects
+                    filterProjects(filter);
+                });
+            });
+
+            function filterProjects(filter) {
+                projectCards.forEach(card => {
+                    const category = card.dataset.category;
+                    
+                    // Use transition for smooth effect
+                    card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                    
+                    if (filter === 'all' || category === filter) {
+                        card.style.display = 'block';
+                        // Use a slight delay to ensure 'display' is set before opacity change
+                        setTimeout(() => {
+                            card.style.opacity = '1';
+                            card.style.transform = 'scale(1)';
+                        }, 50);
+                    } else {
+                        card.style.opacity = '0';
+                        card.style.transform = 'scale(0.95)';
+                        // Hide element completely after transition
+                        setTimeout(() => {
+                            card.style.display = 'none';
+                        }, 300);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
