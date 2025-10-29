@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>가족 저녁 메뉴 플래너</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f7fafc;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+        }
+        .day-cell {
+            padding: 8px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            position: relative;
+        }
+        .day-label {
+            position: absolute;
+            top: 4px;
+            left: 8px;
+            font-size: 0.875rem;
+            font-weight: bold;
+        }
+        .selected-day {
+            background-color: #d1e5ff;
+            border-color: #2563eb;
+            font-weight: bold;
+        }
+        .today-day {
+            background-color: #eff6ff;
+        }
+        .menu-label {
+            margin-top: 1.5rem;
+            font-size: 0.8rem;
+            line-height: 1.2;
+            color: #4a5568;
+            word-break: keep-all;
+            white-space: pre-wrap;
+            font-weight: 500;
+        }
+        .day-header {
+            text-align: center;
+            padding: 12px;
+            font-weight: bold;
+            color: #4a5568;
+        }
+        .recommendation-card {
+            transition: transform 0.2s ease-in-out;
+        }
+        .recommendation-card:hover {
+            transform: translateY(-5px);
+        }
+        .button-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        /* Hide scrollbar for aesthetic purposes */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8">
+
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-blue-600">가족 저녁 메뉴 플래너</h1>
+            <p class="mt-2 text-md md:text-lg text-gray-600">오늘 저녁은 뭘 먹을까요? 날짜를 선택하고 메뉴를 추천받아보세요.</p>
+        </header>
+
+        <!-- Calendar Section -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <button id="prevMonthBtn" class="p-2 rounded-full hover:bg-gray-100 transition-colors">
+                    <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                </button>
+                <h2 id="currentMonthYear" class="text-xl md:text-2xl font-bold text-center"></h2>
+                <button id="nextMonthBtn" class="p-2 rounded-full hover:bg-gray-100 transition-colors">
+                    <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+            </div>
+            <div class="calendar-grid text-sm">
+                <div class="day-header text-red-500">일</div>
+                <div class="day-header">월</div>
+                <div class="day-header">화</div>
+                <div class="day-header">수</div>
+                <div class="day-header">목</div>
+                <div class="day-header">금</div>
+                <div class="day-header text-blue-500">토</div>
+            </div>
+            <div id="calendar-days" class="calendar-grid"></div>
+        </div>
+
+        <!-- Menu Recommendation and Selection -->
+        <div id="recommendation-section" class="bg-white rounded-xl shadow-lg p-6">
+            <div id="instruction-message" class="text-center p-4 text-gray-500">
+                <p>달력에서 날짜를 선택하면 메뉴를 추천받을 수 있습니다.</p>
+            </div>
+            <div id="recommendation-container" class="hidden">
+                <button id="getMenuBtn" class="w-full bg-blue-500 text-white font-bold py-3 px-4 rounded-xl button-shadow hover:bg-blue-600 transition-colors mb-6">
+                    메뉴 추천받기
+                </button>
+
+                <div id="menu-recommendations" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Recommended menu cards will be injected here -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        // Firestore 디버그 모드 활성화
+        setLogLevel('Debug');
+
+        // 전역 변수 설정
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : null);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        
+        // Firebase 초기화
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let userId = null;
+        let selectedDate = null;
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+
+        // UI 요소 가져오기
+        const calendarDaysEl = document.getElementById('calendar-days');
+        const currentMonthYearEl = document.getElementById('currentMonthYear');
+        const prevMonthBtn = document.getElementById('prevMonthBtn');
+        const nextMonthBtn = document.getElementById('nextMonthBtn');
+        const instructionMessageEl = document.getElementById('instruction-message');
+        const recommendationContainerEl = document.getElementById('recommendation-container');
+        const getMenuBtn = document.getElementById('getMenuBtn');
+        const menuRecommendationsEl = document.getElementById('menu-recommendations');
+
+        const menuOptions = [
+            '김치찌개와 두부구이',
+            '된장찌개와 차돌박이',
+            '불고기와 잡채',
+            '닭볶음탕과 밥',
+            '삼겹살 구이와 파채 무침',
+            '순두부찌개와 계란찜',
+            '제육볶음과 상추쌈',
+            '오징어볶음과 소면',
+            '부대찌개와 라면사리',
+            '고등어 구이와 김치찜',
+            '카레라이스',
+            '짜장밥과 탕수육',
+            '닭갈비 볶음밥',
+            '김치볶음밥과 계란후라이',
+            '떡볶이와 튀김',
+            '크림 파스타',
+            '피자와 샐러드',
+            '미역국과 소고기 장조림',
+            '콩나물국밥과 오징어젓갈',
+            '돼지고기 김치찌개와 잡곡밥',
+            '닭가슴살 샐러드와 빵',
+            '돈까스와 스프',
+            '비빔밥과 미소된장국',
+            '잡채밥과 짬뽕 국물',
+            '김밥과 어묵탕',
+            '순대국밥',
+            '냉면과 만두',
+            '칼국수와 김치',
+            '새우볶음밥과 짜사이 무침',
+            '소고기뭇국과 나물반찬',
+            '육개장',
+            '닭칼국수',
+            '콩국수',
+            '어묵볶음과 감자조림',
+            '소고기 전골',
+            '감자탕',
+            '낙지볶음',
+            '곱창전골',
+            '샌드위치와 과일',
+            '참치김치볶음밥',
+            '카프레제 샐러드',
+            '새우튀김과 우동',
+        ];
+
+        // --- Firebase 인증 및 데이터 로딩 ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                userId = user.uid;
+                renderCalendar(currentYear, currentMonth);
+                setupRealtimeListener();
+                console.log("사용자 ID:", userId);
+            } else {
+                console.log("사용자가 인증되지 않았습니다. 익명으로 로그인합니다.");
+                try {
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                } catch (error) {
+                    console.error("인증 실패:", error);
+                }
+            }
+        });
+
+        const setupRealtimeListener = () => {
+            if (!userId) return;
+            const menuCollectionPath = `artifacts/${appId}/users/${userId}/dinner_menus`;
+            const menusCollectionRef = collection(db, menuCollectionPath);
+            onSnapshot(menusCollectionRef, (snapshot) => {
+                const menuMap = {};
+                snapshot.forEach(doc => {
+                    menuMap[doc.id] = doc.data().menu;
+                });
+                renderCalendar(currentYear, currentMonth, menuMap);
+                console.log("메뉴 데이터가 업데이트되었습니다.");
+            });
+        };
+
+        // --- 달력 렌더링 함수 ---
+        const renderCalendar = (year, month, menuMap = {}) => {
+            calendarDaysEl.innerHTML = '';
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            currentMonthYearEl.textContent = `${year}년 ${month + 1}월`;
+
+            for (let i = 0; i < firstDay; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'day-cell';
+                calendarDaysEl.appendChild(emptyCell);
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(year, month, day);
+                const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                
+                const dayCell = document.createElement('div');
+                dayCell.className = 'day-cell relative transition-all duration-200 hover:bg-gray-200';
+                dayCell.dataset.date = dateString;
+
+                if (dateString === selectedDate) {
+                    dayCell.classList.add('selected-day');
+                }
+
+                if (date.toDateString() === new Date().toDateString()) {
+                     dayCell.classList.add('today-day');
+                }
+
+                dayCell.innerHTML = `<span class="day-label">${day}</span>`;
+                
+                if (menuMap[dateString]) {
+                    dayCell.innerHTML += `<p class="menu-label text-center font-bold text-sm">${menuMap[dateString]}</p>`;
+                }
+
+                dayCell.addEventListener('click', () => {
+                    selectedDate = dateString;
+                    document.querySelectorAll('.day-cell').forEach(cell => {
+                        cell.classList.remove('selected-day');
+                    });
+                    dayCell.classList.add('selected-day');
+                    instructionMessageEl.classList.add('hidden');
+                    recommendationContainerEl.classList.remove('hidden');
+                    menuRecommendationsEl.innerHTML = '';
+                });
+
+                calendarDaysEl.appendChild(dayCell);
+            }
+        };
+
+        // --- 메뉴 추천 함수 ---
+        const getMenuRecommendations = () => {
+            const shuffled = [...menuOptions].sort(() => 0.5 - Math.random());
+            const recommendations = shuffled.slice(0, 3);
+            displayRecommendations(recommendations);
+        };
+
+        const displayRecommendations = (recommendations) => {
+            menuRecommendationsEl.innerHTML = '';
+            recommendations.forEach(menu => {
+                const card = document.createElement('div');
+                card.className = 'recommendation-card bg-white p-6 rounded-xl shadow-md border border-gray-200 flex flex-col items-center justify-between transition-transform duration-200';
+                card.innerHTML = `
+                    <p class="text-lg md:text-xl font-bold text-center mb-4">${menu}</p>
+                    <button class="select-btn w-full bg-green-500 text-white font-bold py-2 px-4 rounded-xl button-shadow hover:bg-green-600 transition-colors">
+                        선택
+                    </button>
+                `;
+                card.querySelector('.select-btn').addEventListener('click', () => {
+                    saveMenu(selectedDate, menu);
+                });
+                menuRecommendationsEl.appendChild(card);
+            });
+        };
+
+        // --- Firestore에 메뉴 저장 ---
+        const saveMenu = async (date, menu) => {
+            if (!userId) {
+                console.error("사용자 ID가 없어 메뉴를 저장할 수 없습니다.");
+                return;
+            }
+            if (!date) {
+                console.error("날짜가 선택되지 않았습니다.");
+                return;
+            }
+
+            const menuDocRef = doc(db, `artifacts/${appId}/users/${userId}/dinner_menus`, date);
+            try {
+                await setDoc(menuDocRef, { menu, savedAt: new Date() });
+                console.log(`메뉴 "${menu}"가 ${date}에 저장되었습니다.`);
+                // 성공 메시지 표시
+                const originalText = document.querySelector(`.day-cell[data-date='${date}'] .menu-label`)?.textContent || '';
+                const tempEl = document.createElement('div');
+                tempEl.innerHTML = `
+                    <p class="text-center font-bold text-green-500 text-md animate-pulse">저장 완료!</p>
+                `;
+                 document.querySelector(`.day-cell[data-date='${date}']`).appendChild(tempEl);
+                 setTimeout(() => {
+                    tempEl.remove();
+                 }, 1500);
+
+            } catch (e) {
+                console.error("메뉴 저장 중 오류 발생:", e);
+            }
+        };
+
+        // --- 이벤트 리스너 설정 ---
+        getMenuBtn.addEventListener('click', getMenuRecommendations);
+        
+        prevMonthBtn.addEventListener('click', () => {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            renderCalendar(currentYear, currentMonth);
+        });
+
+        nextMonthBtn.addEventListener('click', () => {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            renderCalendar(currentYear, currentMonth);
+        });
+
+    </script>
+</body>
+</html>
